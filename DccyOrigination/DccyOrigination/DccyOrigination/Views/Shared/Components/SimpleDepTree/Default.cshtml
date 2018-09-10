@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewData["Title"] = "Default";
+}
+
+<link href="~/dtree/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/dtree/css/bootstrap-treeview.min.css" rel="stylesheet" />
+<script src="~/dtree/js/jquery-3.2.1.js"></script>
+<script src="~/dtree/js/bootstrap.min.js"></script>
+<script src="~/dtree/js/bootstrap-treeview.min.js"></script>
+<div class="cascade">
+    <p>
+
+        <span>支路选择：</span><input id="multiState" type="checkbox" />
+
+        级联选择
+
+    </p>
+
+</div>
+
+<div class="treeview-h energy-h">
+
+    <div id="treeview"></div>
+
+</div>
+
+
+<script>
+
+    initTreeData(0);
+    //初始化树形结构数据
+    function initTreeData(stationId) {
+        $.ajax({
+            type: 'get',
+            url: '../AdmDepartments/GetAcountUserAdmDepsTree',
+            async: false,
+           // data: { "stationId": stationId },
+            success: function (result) {
+                if (result != null && result.stateCode == 200 && result.data.length != 0) {
+                    showTree(result.data);
+                } else {
+                    return;
+                }
+            },
+            error: function (a) {
+            },
+            dataType: 'json'
+        });
+    }
+    //得到所有选中的节点id
+    function getTreeId() {
+        var checkNodesArray = $('#treeview').treeview('getChecked');
+        var checkNodeId = [];
+        $.each(checkNodesArray, function (index, value) {
+            checkNodeId.push(value.id);
+        })
+        $("#treeId").val(checkNodeId.join('-'));
+    }
+    //初始化树形结构
+    var nodesArray = [];
+    function showTree(data) {
+        var initTree = {
+            showIcon: false,
+            showCheckbox: true,
+            showBorder: true,
+            levels: 2,
+            highlightSearchResults: false,
+            highlightSelected: false
+        };
+        treeGenerate(data, $("#treeview"), initTree);
+        //级联选择：选中
+        $("#treeview").on('nodeChecked', function (event, node) {
+            if ($("#multiState").prop('checked'))
+                checkChildren(node, $('#treeview'));
+            else
+                $("#treeview").treeview('checkNode', [node.nodeId, { silent: true }]);
+        });
+        //级联选择：取消选中
+        $("#treeview").on('nodeUnchecked', function (event, node) {
+            if ($("#multiState").prop('checked'))
+                unCheckChildren(node, $("#treeview"));
+            else
+                $("#treeview").treeview('uncheckNode', [node.nodeId, { silent: true }]);
+        });
+        //初始化成功默认选中所有节点
+        $("#treeview").treeview('checkAll');
+    }
+
+
+    function checkChildren(node, $Tree) {
+        var str = JSON.stringify(node);
+        var pattern = new RegExp('nodes');
+        if (pattern.test(str)) {
+            $.each(node.nodes, function (key, val) {
+                console.log(val.id);
+                $Tree.treeview('checkNode', [val.nodeId]);
+                checkChildren(val, $Tree);
+            });
+        }
+    }
+
+
+    function unCheckChildren(node, $Tree) {
+        var str = JSON.stringify(node);
+        var pattern = new RegExp('nodes');
+        if (pattern.test(str)) {
+            $.each(node.nodes, function (key, val) {
+                $Tree.treeview('uncheckNode', [val.nodeId]);
+                unCheckChildren(val, $Tree);
+            });
+        }
+    }
+
+    function treeGenerate(data, $Tree, initObj) {
+        var treedata = new Array();
+        var pattern = new RegExp('\\,\\"nodes\\"\\:\\[\\]', 'g');
+        for (var i = 0; i < data.length; i++) {
+            if (i == 0) {
+                var state = {
+                    expanded: true
+                };
+                data[i].state = state;
+            }
+            var tempStr = JSON.stringify(data[i]);
+            treedata.push(JSON.parse(tempStr.replace(pattern, "")));
+        }
+        if (initObj != null || initObj != undefined) {
+            initObj.levels = 1;
+            initObj.data = treedata;
+            $Tree.treeview(initObj);
+        } else {
+            $Tree.treeview({
+                data: treedata,
+                showIcon: true,
+                showCheckbox: false,
+                showBorder: true,
+                levels: 1,
+                multiSelect: false,
+                highlightSearchResults: true,
+                highlightSelected: true
+            });
+        }
+        return this;
+    }
+    function checkTreeChildNode(node, $Tree) {
+        var str = JSON.stringify(node);
+        var pattern = new RegExp('nodes');
+        if (pattern.test(str)) {
+            $.each(node.nodes, function (key, val) {
+                $Tree.treeview('checkNode', [val.nodeId]);
+                Substation.DOMOperator.checkTreeChildNode(val, $Tree);
+            });
+        }
+    }
+
+    function unCheckTreeChildNode(node, $Tree) {
+        var str = JSON.stringify(node);
+        var pattern = new RegExp('nodes');
+        if (pattern.test(str)) {
+            $.each(node.nodes, function (key, val) {
+                $Tree.treeview('uncheckNode', [val.nodeId]);
+                Substation.DOMOperator.unCheckTreeChildNode(val, $Tree);
+            });
+        }
+    }
+
+
+   
+
+
+
+</script>

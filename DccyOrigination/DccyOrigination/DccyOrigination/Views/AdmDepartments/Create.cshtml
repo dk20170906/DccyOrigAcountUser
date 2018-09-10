@@ -1,0 +1,103 @@
+﻿@model DccyOrigination.Models.SysManagement.AdmDepartment
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create</h2>
+
+<h4>AdmDepartment</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="DepName" class="control-label"></label>
+                <input asp-for="DepName" class="form-control" />
+                <span asp-validation-for="DepName" class="text-danger"></span>
+            </div>
+
+
+
+            <div class="form-group">
+                <label class="control-label">请选择所属部门</label>
+                @*通过设置height和overflow-y，使treeview能够在垂直方向上出现滚动条。*@
+                @await Component.InvokeAsync("SimpleDepTree")
+                @*<select class="combobox form-control" asp-for="PGuid" id="depHtml"></select>
+                <span asp-validation-for="PGuid" class="text-danger"></span>*@
+
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="IsDelete" /> @Html.DisplayNameFor(model => model.IsDelete)
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+        $.getJSON("@Url.Content("~/AdmDepartments/GetAdmUserPDeps")", function (data) {
+            var htmlStr = " <option></option>";
+            if (data.stateCode == 200 && data.data.length > 0) {
+                $.each(data.data, function (i, v) {
+                    htmlStr += '<option value="'+v.guid+'">'+v.depName+'</option>';
+                });
+            } else {
+                htmlStr += '<label class="checkbox-inline" style="color:red">此用户暂无部门或组织归属，请联系管理员配置此用户的部门组织属性！！！</label >';
+            }
+            $('#depHtml').html(htmlStr);
+        });
+
+        //var arr = new Array();
+        //function isChecked(obj) {
+        //    var mval = obj.value;
+        //    //获取checked属性
+        //    if ($(obj).prop("checked")) {
+        //        if (arr.indexOf(mval) < 0) {
+        //            arr.push(mval);
+        //        } 
+        //        //设置checked属性
+        //      //  $("input[name='checkboxall']").prop("checked", true);
+        //    } else {
+        //        if (arr.indexOf(mval) > 0) {
+        //            arr.pop(mval);
+        //        } 
+        //        //设置checked属性
+        //     //   $("input[name='checkboxall']").prop("checked", false);
+        //    }
+        //    $('#pGuidStr').val(arr.toString());
+        //}
+
+
+
+        ////浏览器右下角消息提醒
+        function popupMessage() {
+            $.messager.lays(200, 100); //窗口大小
+            $.messager.anim('fade', 2000);  //弹出方式
+            $.messager.show(title, context, 3000); //标题，内容，时间（秒）
+        } 
+    </script>
+}

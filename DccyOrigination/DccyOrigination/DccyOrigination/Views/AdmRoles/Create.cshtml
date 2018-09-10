@@ -1,0 +1,76 @@
+﻿@model DccyOrigination.Models.SysManagement.AdmRole
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create</h2>
+
+<h4>AdmRole</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="RoleName" class="control-label"></label>
+                <input asp-for="RoleName" class="form-control" />
+                <span asp-validation-for="RoleName" class="text-danger"></span>
+            </div>
+
+
+
+            <div class="form-group">
+                <label class="control-label">请选择所属部门</label>
+                <select class="combobox form-control" asp-for="PGuid" id="roleHtml"></select>
+                <span asp-validation-for="PGuid" class="text-danger"></span>
+
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="IsDelete" /> @Html.DisplayNameFor(model => model.IsDelete)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script type="text/javascript">
+        $.getJSON("@Url.Content("~/AdmRoles/GetAcountUserRoles")", function (data) {
+            var htmlStr = " <option></option>";
+            if (data.stateCode == 200 && data.data.length > 0) {
+                $.each(data.data, function (i, v) {
+                    htmlStr += '<option value="'+v.guid+'">'+v.roleName+'</option>';
+                });
+            } else {
+                htmlStr += '<label class="checkbox-inline" style="color:red">此用户暂无可配置角色，请联系管理员配置此用户的相关属性！！！</label >';
+            }
+            $('#roleHtml').html(htmlStr);
+        });
+        
+
+        ////浏览器右下角消息提醒
+        function popupMessage() {
+            $.messager.lays(200, 100); //窗口大小
+            $.messager.anim('fade', 2000);  //弹出方式
+            $.messager.show(title, context, 3000); //标题，内容，时间（秒）
+        }
+    </script>
+}
